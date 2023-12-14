@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{index.html :: dynamic(~{::body})}">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    
+    <div class="card" id="content" th:insert="~{admin/user/indexView :: userIndex}">
+      
+    </div>
+    <!-- Modal -->
+    <div class="modal fade" id="detail" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Hóa đơn chi tiết</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="card mt-2 mb-3" id="modalDetail">
+
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        function getUser(page,isSearch) {
+            $("#loading").show();
+            let name="";
+            if(isSearch==true){
+                name=$("#name").val();
+            }
+            $.ajax({
+                url: "/api/admin/users",
+                type: "GET",
+                data: {
+                    name: name,
+                    page: page
+                },
+                success: function (response) {
+                    $("#content").html(response);
+                    $("#name").val(name);
+                    $("#loading").hide();
+                },
+            });
+        }
+        function changeStatus(id,status){
+            $("#loading").show();
+            $.ajax({
+                url: "/api/admin/users/"+id,
+                type: "PATCH",
+                data: {
+                    status: status
+                },
+                success: function (response) {
+                    $("#loading").hide();
+                    if(response.statusCode=="error"){
+                        Toast.fire({
+							icon: 'error',
+							title: response.data
+						});
+                    }else{
+                        getUser(0,false);
+                        Toast.fire({
+							icon: 'success',
+							title: status==true?"Hiệu lực thành công":"Vô hiệu thành công"
+						});
+                    }
+                },
+            });
+        }
+        function history(page,id){
+            $.ajax({
+                url: "/api/admin/users/"+id+"/bills",
+                type: "GET",
+                data: {
+                    page: page
+                },
+                success: function (response) {
+                    $("#content").html(response);
+                },
+            });
+        }
+        function back(){
+            getUser(0,true);
+        }
+        function detail(id) {
+            $.ajax({
+                url: "/api/admin/bills/" + id,
+                method: "GET",
+                success: function (response) {
+                    $("#modalDetail").html(response);
+                    $("#detail").modal('show');
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,64 @@
+package com.anh.KnifeWorld.service;
+
+import java.util.List;
+import java.util.Optional;
+
+import javax.persistence.criteria.CriteriaBuilder.In;
+import javax.servlet.http.HttpServletRequest;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+
+import com.anh.KnifeWorld.entities.Product;
+import com.anh.KnifeWorld.entities.User;
+import com.anh.KnifeWorld.repository.IProductRepository;
+import com.anh.KnifeWorld.repository.IUserRepository;
+import com.anh.KnifeWorld.utilities.AppConstraint;
+@Service
+public class ProductService {
+	private IProductRepository repository;
+	private IUserRepository userRepository;
+
+	public ProductService(IProductRepository repository, IUserRepository userRepository) {
+		this.repository = repository;
+		this.userRepository = userRepository;
+	}
+	public Page<Product> getActiveProduct(Integer pageNumber){
+		return repository.findActive(PageRequest.of(pageNumber, AppConstraint.numOfRecord,Sort.by("id").descending()));
+	}
+	public Page<Product> getAll(Integer pageNumer){
+		return repository.findAll(PageRequest.of(pageNumer, AppConstraint.numOfRecord,Sort.by("id").descending()));
+	}
+	public Product getById(Integer id) {
+		Optional<Product> optional=repository.findById(id);
+		return optional.isPresent()?optional.get():null;
+	}
+	public Product save(Product p) {
+		return repository.save(p);
+	}
+	public Product changeStatus(Integer id,Integer status,HttpServletRequest request) throws Exception{
+		Product p=this.getById(id);
+		String email =request.getUserPrincipal().getName();
+		User user=(User) userRepository.findByEmail(email);
+		if(p.getUser().equals(user)) {
+			p.setStatus(status);
+			return this.save(p);
+		}else {
+			throw new Exception();
+		}
+	}
+	public Page<Product> search(String key,Integer pageNumber) {
+		return repository.search(key,PageRequest.of(pageNumber, AppConstraint.numOfRecord,Sort.by("id").descending()));
+	}
+	public Page<Product> adminSearch(String key,Integer pageNumber) {
+		return repository.adminSearch(key,PageRequest.of(pageNumber, AppConstraint.numOfRecord,Sort.by("id").descending()));
+	}
+	public Page<Product> adminAll(Integer pageNumber){
+		return repository.adminAll(PageRequest.of(pageNumber, AppConstraint.numOfRecord,Sort.by("id").descending()));
+	}
+	public List<Product> getByIds(List<Integer> ids){
+		return repository.findAllById(ids);
+	}
+}

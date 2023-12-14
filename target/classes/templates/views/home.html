@@ -1,0 +1,48 @@
+<th:block class="py-5" th:fragment="homeView">
+    <div class="container">
+        <div class="title text-center">
+            <a href="#" class="link-dark">
+                <h2 class="position-relative d-inline-block">
+                    Dao KAI</h2>
+            </a>
+        </div>
+        <div class="row gx-0 gy-3">
+            <div class="col-md-6 col-lg-4 col-xl-3 mt-4 p-2" th:each="obj : ${products.getContent()}" id="knife">
+                <div class="">
+                    <div class="img position-relative">
+                        <a th:href="@{/knife-world/products/{id}(id=${obj.id})}"><img th:src="@{/imgUpload/{name}(name=${obj.image})}"
+                                class="productImg"></a>
+                    </div>
+                    <div class="text-center">
+                        <div class="rating mt-3">
+                            <span class="text-warning"> <i class="fas fa-star"></i>
+                            </span> <span class="text-warning"> <i class="fas fa-star"></i>
+                            </span> <span class="text-warning"> <i class="fas fa-star"></i>
+                            </span> <span class="text-warning"> <i class="fas fa-star"></i>
+                            </span> <span class="text-warning"> <i class="fas fa-star"></i>
+                            </span>
+                        </div>
+                        <p class="text-capitalize my-1" th:text="${obj.name}"></p>
+                        <p class="fw-bold" th:text="${#numbers.formatDecimal(obj.price, 1, 'DEFAULT', 0, 'DEFAULT')}+'đ'">
+
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="d-flex justify-content-center" th:if="${products.getTotalPages()>0}">
+        <button class="btn btn-primary me-1" th:disabled="${products.getNumber()==0}" th:onclick="getProduct(0,true)">
+            <span class="fas fa-backward"></span>
+        </button> <button class="btn btn-primary me-1" th:disabled="${products.getNumber()==0} "
+            th:onclick="getProduct([[${products.getNumber()-1}]],true)"> <span class="fas fa-backward-step"></span>
+        </button>
+        <h3>[[${products.getNumber()+1 }]]/[[${products.getTotalPages() }]]</h3>
+        <button class="btn btn-primary me-1" th:disabled="${products.getNumber()==products.getTotalPages()-1}"
+            th:onclick="getProduct([[${products.getNumber()+1}]],true)"> <span class="fas fa-forward-step"></span>
+        </button> <button class="btn btn-primary" th:disabled="${products.getNumber()==products.getTotalPages()-1}"
+            th:onclick="getProduct([[${products.getTotalPages()-1}]],true)">
+            <span class="fas fa-forward"></span>
+        </button>
+    </div>
+</th:block>
