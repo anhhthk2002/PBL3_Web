@@ -1,0 +1,54 @@
+package com.anh.KnifeWorld.service;
+
+import java.util.List;
+import java.util.Optional;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+
+import com.anh.KnifeWorld.entities.User;
+import com.anh.KnifeWorld.repository.IUserRepository;
+import com.anh.KnifeWorld.utilities.AppConstraint;
+
+@Service
+public class UserService {
+	private IUserRepository repository;
+
+	public UserService(IUserRepository repository) {
+		this.repository = repository;
+	}
+
+	public List<User> getAll() {
+		return repository.findAll();
+	}
+	public User getById(Integer id) {
+		Optional<User> optional=repository.findById(id);
+		return optional.isPresent()?optional.get():null;
+	}
+	public User getByEmail(String email) {
+		return repository.findByEmail(email);
+	}
+	public Page<User> getByPage(Integer page,String name){
+		return repository.findByFullnameLike("%"+name+"%",PageRequest.of(page, AppConstraint.numOfRecord,Sort.by("id").descending()));
+	}
+	public User save(User u) {
+		return repository.save(u);
+	}
+	public User changeStatus(Integer id,Integer status,HttpServletRequest request) throws IllegalArgumentException,NullPointerException{
+		User u=this.getById(id);
+		String email =request.getUserPrincipal().getName();
+		User user=(User) this.getByEmail(email);
+		if(u==null) {
+			throw new NullPointerException();
+		}else if(u.equals(user)) {
+			throw new IllegalArgumentException();
+		}else {
+			u.setStatus(status);
+			return this.save(u);
+		}
+	}
+}

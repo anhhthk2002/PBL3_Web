@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{index.html :: dynamic(~{::body})}">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <a class="btn btn-primary mt-3 mb-3" href="/admin/products/create">Thêm
+        mới</a>
+    <div class="card" id="content" th:insert="~{admin/product/indexView :: productIndex}">
+      
+    </div>
+    <script>
+        function getProduct(page,isSearch) {
+            $("#loading").show();
+            let name="";
+            if(isSearch==true){
+                name=$("#name").val();
+            }
+            $.ajax({
+                url: "/api/admin/products",
+                type: "GET",
+                data: {
+                    name: name,
+                    page: page
+                },
+                success: function (response) {
+                    $("#content").html(response);
+                    $("#name").val(name);
+                    $("#loading").hide();console.log(response)
+                },
+            });
+        }
+        function changeStatus(id,status){
+            $("#loading").show();
+            $.ajax({
+                url: "/api/admin/products/"+id,
+                type: "PATCH",
+                data: {
+                    status: status
+                },
+                success: function (response) {
+                    $("#loading").hide();
+                    if(response.statusCode=="error"){
+                        Toast.fire({
+							icon: 'error',
+							title: response.data
+						});
+                    }else{
+                        getProduct(0,false);
+                        Toast.fire({
+							icon: 'success',
+							title: status==0?"Hiệu lực thành công":"Vô hiệu thành công"
+						});
+                    }
+                },
+            });
+        }
+        function update(id){
+            $.ajax({
+                url: "/api/admin/products/detail?id="+id,
+                type: "GET",
+                success: function (response) {
+                    if(response==false){
+                        Toast.fire({
+							icon: 'error',
+							title: "Bạn không có quyền sửa sản phẩm này"
+						});
+                    }else{
+                         window.location.href = "/admin/products/"+id;
+                    }
+                },
+            });
+        }
+    </script>
+</body>
+
+</html>

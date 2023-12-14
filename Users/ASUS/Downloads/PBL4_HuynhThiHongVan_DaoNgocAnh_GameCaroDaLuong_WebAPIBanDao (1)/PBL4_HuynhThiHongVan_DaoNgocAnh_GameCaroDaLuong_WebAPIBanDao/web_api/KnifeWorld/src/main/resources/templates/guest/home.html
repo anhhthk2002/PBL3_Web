@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{index.html :: dynamic(~{::body})}">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <div class="row d-flex justify-content-start py-5">
+        <div class="col-3">
+            <input id="name" type="text" name="name" class="form-control">
+        </div>
+        <div class="col-2">
+            <button class="btn btn-primary" th:onclick="getProduct(0,true)">Tìm kiếm</button>
+        </div>
+        <div class="col-2">
+            <button class="btn btn-secondary" th:onclick="getProduct(0,false)">Tất
+                cả</button>
+        </div>
+    </div>
+    <section id="content" class="py-1" th:insert="~{/views/home :: homeView}">
+       
+    </section>
+    <script type="text/javascript">
+    	function getProduct(page,isSearch) {
+            $("#loading").show();
+            let name="";
+            if(isSearch==true){
+                name=$("#name").val();
+            }
+            $.ajax({
+                url: "/api/products",
+                type: "GET",
+                data: {
+                    name: name,
+                    page: page
+                },
+                success: function (response) {
+                    $("#content").html(response);
+                    $("#name").val(name);
+                    $("#loading").hide();console.log(response)
+                },
+            });
+        }
+    </script>
+</body>
+
+</html>

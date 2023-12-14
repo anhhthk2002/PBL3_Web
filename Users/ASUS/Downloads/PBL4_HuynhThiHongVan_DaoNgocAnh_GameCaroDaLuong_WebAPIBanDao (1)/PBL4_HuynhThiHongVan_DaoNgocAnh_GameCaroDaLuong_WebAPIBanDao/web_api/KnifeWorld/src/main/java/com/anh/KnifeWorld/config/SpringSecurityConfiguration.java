@@ -1,0 +1,52 @@
+package com.anh.KnifeWorld.config;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+
+import com.anh.KnifeWorld.service.UserService;
+import com.anh.KnifeWorld.utilities.AppConstraint;
+
+@EnableWebSecurity
+public class SpringSecurityConfiguration implements UserDetailsService {
+	@Autowired
+	private UserService service;
+
+	@Bean
+	public BCryptPasswordEncoder bCryptPasswordEncoder() {
+		return new BCryptPasswordEncoder();
+	}
+
+	@Bean
+	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+		// @formatter:off
+		http.authorizeHttpRequests(authz -> authz.antMatchers("/","/knife-world/**","/css/**","/images/**","/js/**","/imgUpload/**","/api/products/**").permitAll()
+				.antMatchers("/api/admin/**","/admin/**").hasRole("0")
+				.anyRequest().hasRole("1")
+				).rememberMe().key("uniqueAndSecret").tokenValiditySeconds(1296000).and().formLogin().defaultSuccessUrl("/knife-world").permitAll().and()
+			.logout().logoutSuccessUrl("/knife-world").permitAll().and().csrf().disable().cors();;
+		;
+		// @formatter:on
+		return http.build();
+	}
+
+	@Override
+	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+		com.anh.KnifeWorld.entities.User u = service.getByEmail(username);
+		if (u == null) {
+			throw new UsernameNotFoundException(username);
+		} else {
+			UserDetails user = User.builder().username(u.getEmail()).password(u.getPassword())
+					.roles(u.getRole() == 0 ? AppConstraint.ROLE_ADMIN : AppConstraint.ROLE_USER)
+					.disabled(u.getStatus() == 0 ? false : true).build();
+			return user;
+		}
+	}
+}
